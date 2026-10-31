@@ -1,4 +1,5 @@
 import json
+import os
 from collections.abc import Callable
 
 from openai import OpenAI
@@ -7,8 +8,8 @@ from .config import Config
 from .tools import REGISTRY, load_all
 
 
-def build_system(address: str) -> str:
-    return (
+def build_system(address: str, github_user: str = "") -> str:
+    prompt = (
         "You are J.A.R.V.I.S., a refined British AI butler and engineering partner. "
         f"Address the user as '{address}'. Your tone is calm, impeccably polite, and dryly witty, "
         "with understatement rather than jokes. Your replies are spoken aloud, so keep them to one "
@@ -17,7 +18,12 @@ def build_system(address: str) -> str:
         "and never invent data. If a tool fails, say so plainly. "
         "Offer one proactive suggestion when it is genuinely useful, otherwise don't."
     )
-
+    if github_user:
+        prompt += (
+            f" The user's GitHub username is exactly '{github_user}'. "
+            "Copy it letter for letter, and use it as the owner when none is given."
+        )
+    return prompt
 
 
 class Brain:
@@ -27,7 +33,10 @@ class Brain:
         self.confirm = confirm or (lambda _: False)  # deny writes by default
         load_all()
         self.messages: list[dict] = [
-            {"role": "system", "content": build_system(self.cfg.address)}
+            {
+                "role": "system",
+                "content": build_system(self.cfg.address, self.cfg.github_user),
+            }
         ]
 
     def _run_tool(self, call) -> str:
@@ -41,9 +50,12 @@ class Brain:
         if tool.writes and not self.confirm(f"{tool.name}({args})"):
             return "The user declined this action."
         try:
-            return str(tool.func(**args))
+            result = str(tool.func(**args))
         except Exception as e:  # surface errors to the model, don't crash
-            return f"Tool error: {e}"
+            result = f"Tool error: {e}"
+        if os.getenv("JARVIS_DEBUG"):
+            print(f"[tool] {tool.name}({args}) -> {result[:200]}")
+        return result
 
     def ask(self, text: str) -> str:
         self.messages.append({"role": "user", "content": text})

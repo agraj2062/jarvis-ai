@@ -12,6 +12,7 @@ class Config:
     api_key: str = os.getenv("JARVIS_API_KEY", "ollama")
     model: str = os.getenv("JARVIS_MODEL", "qwen2.5:7b")
     github_token: str = os.getenv("GITHUB_TOKEN", "")
+    github_user: str = os.getenv("GITHUB_USER", "")
     # Persona / voice
     address: str = os.getenv("JARVIS_ADDRESS", "sir")
     voice_model: str = os.getenv("JARVIS_VOICE_MODEL", "voices/en_GB-alan-medium.onnx")
