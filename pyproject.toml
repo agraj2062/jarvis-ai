@@ -1,0 +1,28 @@
+[project]
+name = "jarvis-ai"
+version = "0.2.0"
+description = "An open-source, JARVIS-style AI assistant with GitHub integration"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = ["openai>=1.30", "requests>=2.31", "python-dotenv>=1.0", "psutil>=5.9"]
+
+[project.optional-dependencies]
+voice = ["faster-whisper>=1.0", "openwakeword>=0.6", "sounddevice>=0.4", "numpy", "piper-tts"]
+dev = ["pytest", "ruff"]
+
+[project.scripts]
+jarvis = "jarvis.main:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["jarvis*"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
